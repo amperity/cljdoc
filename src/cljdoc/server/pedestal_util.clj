@@ -61,3 +61,15 @@
    {:name ::html
     :enter (fn html-render-inner [context]
              (ok-html context (render-fn context)))}))
+
+(defn body
+  "Get the response data from `(data-fn context)`, if HTML requested then HTML-ize
+  it via `(render-html-fn context data)`, and return it as the body."
+  [data-fn render-html-fn]
+  (interceptor/interceptor
+    {:name ::body
+     :enter (fn body-render-inner [context]
+              (let [data (data-fn context)]
+                (if (= "text/html" (get-in context [:response :body :headers "Content-Type"]))
+                  (render-html-fn context data)
+                  (assoc context :response {:status 200 :body data}))))}))
