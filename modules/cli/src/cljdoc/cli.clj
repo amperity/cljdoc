@@ -35,7 +35,7 @@
     (if (storage/exists? store artifact-info)
       (with-open [zip (java.util.zip.ZipOutputStream. (io/output-stream (io/file output)))]
         (loop [seen #{}
-               entries (offline/zip-stream (storage/bundle-docs store artifact-info))]
+               entries (offline/zip-entries (storage/bundle-docs store artifact-info))]
           (if (seq entries)
             (let [[path content] (first entries)]
               (when-not (contains? seen path)

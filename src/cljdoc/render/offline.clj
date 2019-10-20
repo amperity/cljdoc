@@ -172,7 +172,9 @@
          (->> (ns-page ns-data defs)
               (page' :namespace (platf/get-field ns-data :name)))])])))
 
-(defn zip-stream [{:keys [version-entity] :as cache-bundle}]
+(defn zip-entries
+  "Construct a sequence of path/content pairs to create a zip file with."
+  [{:keys [version-entity] :as cache-bundle}]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
                     "/")]
@@ -183,8 +185,7 @@
                    (instance? URL v)                  (slurp v)
                    (instance? java.io.File v)         (Files/readAllBytes (.toPath v))
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
-                   :else (throw (Exception. (str "Unsupported value " (class v)))))]))
-         (fs-compression/make-zip-stream))))
+                   :else (throw (Exception. (str "Unsupported value " (class v)))))])))))
 
 (comment
   (require '[cljdoc.storage.api :as storage]
