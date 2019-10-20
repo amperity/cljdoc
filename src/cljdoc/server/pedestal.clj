@@ -39,7 +39,8 @@
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
             [io.pedestal.interceptor :as interceptor]
-            [io.pedestal.http.ring-middlewares :as ring-middlewares]))
+            [io.pedestal.http.ring-middlewares :as ring-middlewares]
+            [me.raynes.fs.compression :as fs-compression]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -380,7 +381,8 @@
                                "Content-Disposition" (format "attachment; filename=\"%s\""
                                                              (str (-> cache-bundle :version-entity :artifact-id) "-"
                                                                   (-> cache-bundle :version-entity :version) ".zip"))}
-                     :body (offline/zip-stream cache-bundle)}
+                     :body (fs-compression/make-zip-stream
+                             (offline/zip-entries cache-bundle))}
                     {:status 404
                      :headers {}
                      :body "Could not find data, please request a build first"})
