@@ -33,10 +33,19 @@
         store         (:cljdoc/storage sys)
         artifact-info (util/version-entity project version)]
     (if (storage/exists? store artifact-info)
-      (->
-       (storage/bundle-docs store artifact-info)
-       (offline/zip-stream)
-       (io/copy (io/file output)))
+      (with-open [zip (java.util.zip.ZipOutputStream. (io/output-stream (io/file output)))]
+        (loop [seen #{}
+               entries (offline/zip-stream (storage/bundle-docs store artifact-info))]
+          (if (seq entries)
+            (let [[path content] (first entries)]
+              (when-not (contains? seen path)
+                (.putNextEntry zip (java.util.zip.ZipEntry. ^String path))
+                (if (string? content)
+                  (.write zip (.getBytes ^String content))
+                  (.write zip ^bytes content))
+                (.closeEntry zip))
+              (recur (conj seen path) (next entries)))
+            nil)))
       (do
         (log/fatalf "%s@%s could not be found in storage" project version)
         (System/exit 1)))))
